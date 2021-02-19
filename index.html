@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="Piano Chord Trainer" />
+    <title>Piano Chord Trainer</title>
+
+    <!-- web manifest -->
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- styles -->
+    <link rel="stylesheet" href="styles/main.css" />
+
+    <!-- Adding to homescreen for android  -->
+    <meta name="theme-color" content="#2E3AA1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Piano Chord Trainer" />
+
+    <!-- Adding to homescreen for safari on ios -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta
+      name="apple-mobile-web-app-title"
+      content="Piano Chord Trainer"
+    />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+
+    <meta name="msapplication-TileColor" content="#2F3BA2" />
+
+    <script defer src="scripts/custom-piano-keys.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"
+      integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww=="
+      crossorigin="anonymous"
+    ></script>
+    <script type="text/javascript" src="scripts/Tone.js"></script>
+    <script type="text/javascript" src="scripts/Tonejs-Instruments.js"></script>
+  </head>
+
+  <body>
+    <div>
+      <div class="row" id="setting">
+        <div style="margin-left: 2rem" id="chord-names"></div>
+        <div>
+          <div class="inversion-box">
+            <label for="maxInversion">Maximum Inversion</label>
+            <input type="number" id="maxInversion" value="5" />
+          </div>
+          <div class="inversion-box">
+            <label for="sound">Play Sound</label>
+            <input type="checkbox" id="sound" checked />
+          </div>
+          <div class="inversion-box">
+            <label for="show-chord-name">Show Chord Name</label>
+            <input type="checkbox" id="show-chord-name" checked />
+          </div>
+          <div class="inversion-box">
+            <label for="new-cards">New Cards Per Session</label>
+            <input type="number" id="new-cards" value="10" />
+          </div>
+          <div>
+            <button onclick="start()" class="btn btn-dark">Start</button>
+            <button onclick="reset()" class="btn btn-dark">
+              Reset Progress
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="cards" class="hidden">
+        <div class="row">
+          <button
+            style="margin-left: 2rem"
+            onclick="stop()"
+            class="btn btn-dark"
+          >
+            Stop
+          </button>
+          <button onclick="show()" class="btn btn-dark">Show</button>
+          <button onclick="next()" class="btn btn-dark">Next</button>
+          <div>
+            <h1 id="correct"></h1>
+          </div>
+        </div>
+        <div class="card">
+          <h1 id="card-content"></h1>
+        </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            align-content: center;
+            justify-content: center;
+          "
+        >
+          <custom-piano-keys id="piano" oct-count="3"> </custom-piano-keys>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="scripts/main.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register('service-worker.js').then(() => {
+        	console.log("Service Worker Registered");
+        });
+      }
+    </script>
+  </body>
+</html>

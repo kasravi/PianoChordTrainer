@@ -1,0 +1,47 @@
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.row button {
+    margin: 1rem
+}
+
+#correct {
+    font-size: xxx-large;
+    right: 0;
+    position: fixed;
+    margin-right: 2rem;
+    color: cornflowerblue;
+}
+
+.hidden{
+    display: none!important;
+}
+
+#chord-names {
+    border: 1px black solid;
+    width: 30%;
+    margin: 1rem;
+    padding: 0.5rem;
+    height: 80vh;
+    overflow: scroll
+}
+
+.card {
+    height: 40vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+
+}
+
+.inversion-box{
+    margin: 1rem;
+}
+
+.inversion-box input {
+    width: 3rem;
+}
