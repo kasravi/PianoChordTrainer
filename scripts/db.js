@@ -28,7 +28,7 @@ function createTable(db) {
     db.transaction(
       function (tx) {
         tx.executeSql(
-          "create table chords(id int primary key , root text, name text, notes text, inversion int, response int, duedate int, interval int, repetition int, efactor float, ts int)",
+          "create table chords(id int primary key , root text, name text, notes text, inversion int, common bit, response int, duedate int, interval int, repetition int, efactor float, ts int)",
           [],
           function (transaction, result) {
             resolve(result);
@@ -92,12 +92,13 @@ export async function init(data) {
       _.map(data, (d, i) => {
         var notes = _.split(d.notes, " ");
         return _.map(notes, (n, ii) =>
-          query(`insert into chords values (?,?,?,?,?,?,?,?,?,?,?)`, db, [
+          query(`insert into chords values (?,?,?,?,?,?,?,?,?,?,?,?)`, db, [
             i * 10 + ii,
             d.root,
             d.name,
             [n, ..._.filter(notes, (nn) => nn !== n)].join(" "),
             ii,
+            !!d.common,
             null,
             null,
             0,
@@ -128,11 +129,11 @@ export async function get(names, maxInversion, db) {
   );
 }
 
-export async function getNew(names, maxInversion, db) {
+export async function getNew(names, maxInversion, common, db) {
   return query(
     `select * from chords where name in (${_.join(
       _.map(names, (n) => `'${n}'`, ",")
-    )}) and inversion <= ${maxInversion} and duedate is null order by inversion asc`,
+    )}) and inversion <= ${maxInversion} and duedate is null order by `+(common?'common desc,':'')+`inversion asc`,
     db
   );
 }

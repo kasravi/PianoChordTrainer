@@ -75,6 +75,8 @@ var playSound;
 var showChord;
 var chordTypes;
 var newCards;
+var randomOrder;
+var common;
 
 var notesMap = {
   C: 1,
@@ -199,12 +201,16 @@ window.start = async () => {
   }
 
   try {
+    correct.innerHTML = "Initializing...";
     var db = await init(data);
+    correct.innerHTML = "Initialization done...";
 
     maxInversionValue = document.getElementById("maxInversion").value;
     newCards = document.getElementById("new-cards").value;
     playSound = document.getElementById("sound").checked;
     showChord = document.getElementById("show-chord-name").checked;
+    randomOrder = document.getElementById("random-order").checked;
+    common = document.getElementById("common-chords").checked;
     chordTypes = _.reduce(
       document.querySelectorAll("#chord-names input"),
       (a, f) => {
@@ -219,18 +225,32 @@ window.start = async () => {
     next = async (i) => {
       if (i <= 0) {
         correct.innerHTML = "Done!";
-        await wait(1000);
+        await wait(2000);
         window.stop();
         return;
       }
       piano.setMarkedKeys([]);
       correct.innerHTML = "";
+
       var chords = await get(chordTypes, maxInversionValue, db);
+      var chord = {};
       if (!chords || chords.length === 0) {
-        chords = await getNew(chordTypes, maxInversionValue, db);
+        chords = await getNew(chordTypes, maxInversionValue,common, db);
+        if(!chords || chords.length === 0) {
+          correct.innerHTML = "No New Card!";
+          await wait(2000);
+          window.stop();
+          return;
+        }
+        if(randomOrder){
+          chord = chords[Math.floor(Math.random()*chords.length)];        
+        } else {
+          chord = chords[0]
+        }
         i--;
+      }else{
+        chord = chords[0];
       }
-      var chord = chords[0];
       if (showChord) {
         card.innerHTML =
           chord.root +
@@ -253,7 +273,7 @@ window.start = async () => {
       if (playSound) {
         play(noteNums);
       }
-      show = async () => {
+      show = async (correct) => {
         card.innerHTML =
           chord.root +
           " " +
@@ -267,15 +287,17 @@ window.start = async () => {
           efactor: chord.efactor,
         };
 
-        item = supermemo(item, 5);
+        if(!correct){
+          item = supermemo(item, 0);
 
-        await update(
-          chord.id,
-          item.interval,
-          item.repetition,
-          item.efactor,
-          db
-        );
+          await update(
+            chord.id,
+            item.interval,
+            item.repetition,
+            item.efactor,
+            db
+          );
+        }
       };
 
       var then = new Date().getTime();
@@ -331,7 +353,8 @@ window.start = async () => {
           );
 
           correct.innerHTML = "Correct";
-          await wait(1000);
+          await show(true)
+          await wait(2000);
 
           await next(i);
         }
