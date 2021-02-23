@@ -5,10 +5,10 @@ export function supermemo(item, grade) {
   
     if (grade >= 3) {
       if (item.repetition === 0) {
-        nextInterval = 1;
+        nextInterval = 0;
         nextRepetition = 1;
       } else if (item.repetition === 1) {
-        nextInterval = 6;
+        nextInterval = 1;
         nextRepetition = 2;
       } else {
         nextInterval = Math.round(item.interval * item.efactor);
