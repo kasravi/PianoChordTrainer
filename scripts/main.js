@@ -303,11 +303,10 @@ window.start = async () => {
       var then = new Date().getTime();
       evaluate = async (recNotes) => {
         if (!recNotes || recNotes.length === 0) {
-          next(i); //TODO remove - just for test
-          return;
+          //recNotes = noteNums//TODO remove
         }
 
-        if (recNotes.length < 3) return;
+        if (!recNotes || recNotes.length < 3) return;
         var sortedNotes = recNotes.sort((a, b) => a - b);
         console.log(sortedNotes);
         if (
@@ -327,7 +326,7 @@ window.start = async () => {
           };
 
           var now = new Date().getTime();
-          var t = then - now;
+          var t = now - then;
           let grade = 0;
           if (t < 1000) {
             grade = 5;
