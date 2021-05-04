@@ -70,6 +70,7 @@ var cards = document.getElementById("cards");
 var piano = document.getElementById("piano");
 var card = document.getElementById("card-content");
 var correct = document.getElementById("correct");
+var tom = document.getElementById("tom");
 var maxInversionValue;
 var playSound;
 var showChord;
@@ -77,6 +78,7 @@ var chordTypes;
 var newCards;
 var randomOrder;
 var common;
+var today;
 
 var notesMap = {
   C: 1,
@@ -211,6 +213,7 @@ window.start = async () => {
     showChord = document.getElementById("show-chord-name").checked;
     randomOrder = document.getElementById("random-order").checked;
     common = document.getElementById("common-chords").checked;
+    today = (tom?parseInt(tom.value):0) + Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000))
     chordTypes = _.reduce(
       document.querySelectorAll("#chord-names input"),
       (a, f) => {
@@ -232,7 +235,8 @@ window.start = async () => {
       piano.setMarkedKeys([]);
       correct.innerHTML = "";
 
-      var chords = await get(chordTypes, maxInversionValue, db);
+      
+      var chords = await get(chordTypes, maxInversionValue, db, today);
       var chord = {};
       if (!chords || chords.length === 0) {
         chords = await getNew(chordTypes, maxInversionValue,common, db);
@@ -295,7 +299,7 @@ window.start = async () => {
             item.interval,
             item.repetition,
             item.efactor,
-            db
+            db, today
           );
         }
       };
@@ -303,12 +307,25 @@ window.start = async () => {
       var then = new Date().getTime();
       evaluate = async (recNotes) => {
         if (!recNotes || recNotes.length === 0) {
-          //recNotes = noteNums//TODO remove
+          // recNotes = [4,8,11];
+          // if(Math.random()>0.2){
+          //   recNotes = noteNums//TODO remove
+          // }
         }
 
-        if (!recNotes || recNotes.length < 3) return;
+        if (!recNotes || recNotes.length < noteNums.length) return;
         var sortedNotes = recNotes.sort((a, b) => a - b);
-        console.log(sortedNotes);
+        
+        let item = {
+          interval: chord.interval,
+          repetition: chord.repetition,
+          efactor: chord.efactor,
+        };
+
+        var now = new Date().getTime();
+        var t = now - then;
+        let grade = 0;
+
         if (
           sortedNotes.length === noteNums.length &&
           sortedNotes[0] % 12 === noteNums[0] % 12 &&
@@ -319,15 +336,7 @@ window.start = async () => {
             _.some(_.slice(noteNums, 1), (g) => g % 12 === f % 12)
           )
         ) {
-          let item = {
-            interval: chord.interval,
-            repetition: chord.repetition,
-            efactor: chord.efactor,
-          };
-
-          var now = new Date().getTime();
-          var t = now - then;
-          let grade = 0;
+          
           if (t < 1000) {
             grade = 5;
           } else if (t < 2000) {
@@ -348,15 +357,29 @@ window.start = async () => {
             item.interval,
             item.repetition,
             item.efactor,
-            db
+            db, today
           );
 
           correct.innerHTML = "Correct";
+          
+        } else {
+          item = supermemo(item, grade);
+
+          await update(
+            chord.id,
+            item.interval,
+            item.repetition,
+            item.efactor,
+            db, today
+          );
+
+          correct.innerHTML = "Wrong";
+        }
+
           await show(true)
           await wait(2000);
 
           await next(i);
-        }
       };
     };
 

@@ -118,9 +118,9 @@ export async function reset() {
   await query("drop table chords", db);
 }
 
-export async function get(names, maxInversion, db) {
+export async function get(names, maxInversion, db, today) {
   const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
-  const today = Math.floor(new Date().getTime() / DAY_IN_MILISECONDS);
+  today = today || Math.floor(new Date().getTime() / DAY_IN_MILISECONDS);
   return query(
     `select * from chords where name in (${_.join(
       _.map(names, (n) => `'${n}'`, ",")
@@ -138,14 +138,14 @@ export async function getNew(names, maxInversion, common, db) {
   );
 }
 
-export async function update(id, interval, repetition, efactor, db) {
+export async function update(id, interval, repetition, efactor, db, today) {
   const DAY_IN_MILISECONDS = 24 * 60 * 60 * 1000;
   const now = new Date().getTime();
-  const today = Math.floor(now / DAY_IN_MILISECONDS);
+  today = today || Math.floor(now / DAY_IN_MILISECONDS);
   return query(
     `update chords set duedate='${
       today + interval
-    }', repetition=${repetition}, efactor=${efactor}, ts=${now} where id = ${id}`,
+    }',interval=${interval}, repetition=${repetition}, efactor=${efactor}, ts=${now} where id = ${id}`,
     db
   );
 }
