@@ -1,7 +1,7 @@
 import data from "./chords.js";
 import { init, reset, get, getNew, update } from "./db.js";
 import { supermemo } from "./sm.js";
-import {setCookie, getCookie} from "./cookie.js"
+import { setCookie, getCookie } from "./cookie.js";
 
 var chordNames = document.getElementById("chord-names");
 _.forEach(_.uniq(_.map(data, (c) => c.name)), (option) => {
@@ -23,22 +23,22 @@ _.forEach(_.uniq(_.map(data, (c) => c.name)), (option) => {
   );
 });
 
-_.forEach(document.querySelectorAll("input"),d=>{
-    var val = getCookie(d.id);
-    if(val!==undefined){
-        if(d.type === "checkbox"){
-            d.checked = val === "true";
-        }else{
-            d.value = val;
-        }
+_.forEach(document.querySelectorAll("input"), (d) => {
+  var val = getCookie(d.id);
+  if (val !== undefined) {
+    if (d.type === "checkbox") {
+      d.checked = val === "true";
+    } else {
+      d.value = val;
     }
-    d.onchange = ()=> {
-        if(d.type === "checkbox"){
-            setCookie(d.id,d.checked);
-        }else{
-            setCookie(d.id,d.value);
-        }
+  }
+  d.onchange = () => {
+    if (d.type === "checkbox") {
+      setCookie(d.id, d.checked);
+    } else {
+      setCookie(d.id, d.value);
     }
+  };
 });
 
 var samples = SampleLibrary.load({
@@ -79,6 +79,8 @@ var newCards;
 var randomOrder;
 var common;
 var today;
+var rehearseCounter;
+var evaluateTimeout;
 
 var notesMap = {
   C: 1,
@@ -112,7 +114,7 @@ window.show = () => {
 };
 
 window.reset = () => {
-  if(window.confirm("Are you sure you want to reset your progress?")){
+  if (window.confirm("Are you sure you want to reset your progress?")) {
     reset();
   }
 };
@@ -162,7 +164,7 @@ window.start = async () => {
   }
 
   function onMIDIFailure() {
-    console.log("Error: Could not access MIDI devices.");
+    alert("Could not access MIDI devices.");
   }
 
   function getMIDIMessage(message) {
@@ -173,7 +175,7 @@ window.start = async () => {
     switch (command) {
       case 144: // note on
         if (velocity > 0) {
-          noteOn(note);
+          noteOn(note)
         } else {
           noteOff(note);
         }
@@ -190,7 +192,10 @@ window.start = async () => {
       console.log("on", note);
       all_rec_notes.push(note);
       all_rec_notes = _.uniq(all_rec_notes);
-      await evaluate(all_rec_notes);
+      if(evaluateTimeout){
+        clearTimeout(evaluateTimeout)
+      }
+      evaluateTimeout = setTimeout(async () => {await evaluate()},1000);
     }
 
     function noteOff(note) {
@@ -213,7 +218,10 @@ window.start = async () => {
     showChord = document.getElementById("show-chord-name").checked;
     randomOrder = document.getElementById("random-order").checked;
     common = document.getElementById("common-chords").checked;
-    today = (tom?parseInt(tom.value):0) + Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000))
+    today =
+      (tom ? parseInt(tom.value) : 0) +
+      Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
+    rehearseCounter = null;
     chordTypes = _.reduce(
       document.querySelectorAll("#chord-names input"),
       (a, f) => {
@@ -235,24 +243,23 @@ window.start = async () => {
       piano.setMarkedKeys([]);
       correct.innerHTML = "";
 
-      
       var chords = await get(chordTypes, maxInversionValue, db, today);
       var chord = {};
       if (!chords || chords.length === 0) {
-        chords = await getNew(chordTypes, maxInversionValue,common, db);
-        if(!chords || chords.length === 0) {
+        chords = await getNew(chordTypes, maxInversionValue, common, db);
+        if (!chords || chords.length === 0) {
           correct.innerHTML = "No New Card!";
           await wait(2000);
           window.stop();
           return;
         }
-        if(randomOrder){
-          chord = chords[Math.floor(Math.random()*chords.length)];        
+        if (randomOrder) {
+          chord = chords[Math.floor(Math.random() * chords.length)];
         } else {
-          chord = chords[0]
+          chord = chords[0];
         }
         i--;
-      }else{
+      } else {
         chord = chords[0];
       }
       if (showChord) {
@@ -291,7 +298,7 @@ window.start = async () => {
           efactor: chord.efactor,
         };
 
-        if(!correct){
+        if (!correct) {
           item = supermemo(item, 0);
 
           await update(
@@ -299,13 +306,15 @@ window.start = async () => {
             item.interval,
             item.repetition,
             item.efactor,
-            db, today
+            db,
+            today
           );
         }
       };
 
       var then = new Date().getTime();
-      evaluate = async (recNotes) => {
+      evaluate = async () => {
+        const recNotes = all_rec_notes;
         if (!recNotes || recNotes.length === 0) {
           // recNotes = [4,8,11];
           // if(Math.random()>0.2){
@@ -315,7 +324,7 @@ window.start = async () => {
 
         if (!recNotes || recNotes.length < noteNums.length) return;
         var sortedNotes = recNotes.sort((a, b) => a - b);
-        
+
         let item = {
           interval: chord.interval,
           repetition: chord.repetition,
@@ -336,7 +345,20 @@ window.start = async () => {
             _.some(_.slice(noteNums, 1), (g) => g % 12 === f % 12)
           )
         ) {
-          
+          if (rehearseCounter) {
+            if (rehearseCounter > 1) {
+              rehearseCounter--;
+              correct.innerHTML = `Rehearse it ${rehearseCounter} more time`;
+              return
+            } else {
+              rehearseCounter = null;
+              await wait(2000);
+
+              await next(i);
+              return;
+            }
+          }
+
           if (t < 1000) {
             grade = 5;
           } else if (t < 2000) {
@@ -357,11 +379,16 @@ window.start = async () => {
             item.interval,
             item.repetition,
             item.efactor,
-            db, today
+            db,
+            today
           );
 
           correct.innerHTML = "Correct";
-          
+
+          await show(true);
+          await wait(2000);
+
+          await next(i);
         } else {
           item = supermemo(item, grade);
 
@@ -370,16 +397,18 @@ window.start = async () => {
             item.interval,
             item.repetition,
             item.efactor,
-            db, today
+            db,
+            today
           );
 
           correct.innerHTML = "Wrong";
-        }
 
-          await show(true)
+          await show(true);
+          rehearseCounter = 5;
           await wait(2000);
-
-          await next(i);
+          correct.innerHTML = `Rehearse it ${rehearseCounter} more time`;
+          //await next(i);
+        }
       };
     };
 
