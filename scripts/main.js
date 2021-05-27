@@ -41,6 +41,14 @@ _.forEach(document.querySelectorAll("input"), (d) => {
   };
 });
 
+document.getElementById("common-chords").addEventListener("click", ()=>{
+  _.forEach(data, (option) => {
+    if(document.getElementById("common-chords").checked && option.common){
+      document.getElementById(`checkbox-${option.name}`).checked=true;
+    }
+  })
+});
+
 var samples = SampleLibrary.load({
   instruments: ["piano"],
   baseUrl: "/scripts/",
@@ -156,7 +164,11 @@ window.start = async () => {
 
   function onMIDISuccess(midiAccess) {
     var inputs = midiAccess.inputs;
-    var outputs = midiAccess.outputs;
+
+    if((inputs?.size ?? 0) === 0){
+      setTimeout(()=>navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure),200)
+      return
+    }
 
     for (var input of midiAccess.inputs.values()) {
       input.onmidimessage = getMIDIMessage;
@@ -189,7 +201,6 @@ window.start = async () => {
       if (playSound) {
         current.triggerAttack(Tone.Frequency(note, "midi").toNote());
       }
-      console.log("on", note);
       all_rec_notes.push(note);
       all_rec_notes = _.uniq(all_rec_notes);
       if(evaluateTimeout){
@@ -202,7 +213,6 @@ window.start = async () => {
       if (playSound) {
         current.triggerRelease(Tone.Frequency(note, "midi").toNote());
       }
-      console.log("off", note);
       all_rec_notes = _.filter(all_rec_notes, (f) => f !== note);
     }
   }
@@ -218,6 +228,7 @@ window.start = async () => {
     showChord = document.getElementById("show-chord-name").checked;
     randomOrder = document.getElementById("random-order").checked;
     common = document.getElementById("common-chords").checked;
+    
     today =
       (tom ? parseInt(tom.value) : 0) +
       Math.floor(new Date().getTime() / (24 * 60 * 60 * 1000));
