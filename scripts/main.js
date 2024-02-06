@@ -1,10 +1,12 @@
-import data from "./chords.js";
+// import data from "./chords.js";
+import {allChords} from "./chords.js";
+console.log(allChords)
 import { init, reset, get, getNew, update } from "./db.js";
 import { supermemo } from "./sm.js";
 import { setCookie, getCookie } from "./cookie.js";
 
 var chordNames = document.getElementById("chord-names");
-_.forEach(_.uniq(_.map(data, (c) => c.name)), (option) => {
+_.forEach(_.uniq(_.map(allChords, (c) => c.name)), (option) => {
   chordNames.insertAdjacentHTML(
     "beforeend",
     `<div>
@@ -42,9 +44,10 @@ _.forEach(document.querySelectorAll("input"), (d) => {
 });
 
 document.getElementById("common-chords").addEventListener("click", ()=>{
-  _.forEach(data, (option) => {
-    if(document.getElementById("common-chords").checked && option.common){
+  _.forEach(allChords, (option) => {
+    if(document.getElementById("common-chords").checked && option.common>-1){
       document.getElementById(`checkbox-${option.name}`).checked=true;
+      setCookie(`checkbox-${option.name}`, true);
     }
   })
 });
@@ -219,7 +222,7 @@ window.start = async () => {
 
   try {
     correct.innerHTML = "Initializing...";
-    var db = await init(data);
+    var db = await init(allChords);
     correct.innerHTML = "Initialization done...";
 
     maxInversionValue = document.getElementById("maxInversion").value;
@@ -258,6 +261,7 @@ window.start = async () => {
       var chord = {};
       if (!chords || chords.length === 0) {
         chords = await getNew(chordTypes, maxInversionValue, common, db);
+        console.log(chords)
         if (!chords || chords.length === 0) {
           correct.innerHTML = "No New Card!";
           await wait(2000);
@@ -273,15 +277,6 @@ window.start = async () => {
       } else {
         chord = chords[0];
       }
-      if (showChord) {
-        card.innerHTML =
-          chord.root +
-          " " +
-          chord.name +
-          (chord.inversion === 0 ? "" : " " + chord.inversion + "th inversion");
-      } else {
-        card.innerHTML = "";
-      }
 
       var notes = _.split(chord.notes, " ");
 
@@ -291,16 +286,27 @@ window.start = async () => {
           noteNums[j] += 12;
         }
       }
+      
+      if (showChord) {
+        card.innerHTML =
+          chord.name +
+          (chord.inversion === 0 ? "" : " " + chord.inversion + "th inversion")+`<br><span style="font-size:20px;">`+chord.abbr.map(f=>`<span style="font-size:20px;">${f}</span>`).join(" , ")+"</span>";
+        if(chord.repetition<4){
+          piano.setMarkedKeys(_.map(noteNums, (f) => f + 1));
+        }
+      } else {
+        card.innerHTML = "";
+      }
+
+      
 
       if (playSound) {
         play(noteNums);
       }
       show = async (correct) => {
         card.innerHTML =
-          chord.root +
-          " " +
           chord.name +
-          (chord.inversion === 0 ? "" : " " + chord.inversion + "th inversion");
+          (chord.inversion === 0 ? "" : " " + chord.inversion + "th inversion")+`<br><span style="font-size:20px;">`+chord.abbr.map(f=>`<span style="font-size:20px;">${f}</span>`).join(" , ")+"</span>";
 
         piano.setMarkedKeys(_.map(noteNums, (f) => f + 1));
         let item = {
