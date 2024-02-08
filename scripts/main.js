@@ -75,7 +75,7 @@ document.getElementById("common-chords").addEventListener("click", ()=>{
 
 var samples = SampleLibrary.load({
   instruments: ["piano"],
-  baseUrl: "/scripts/",
+  baseUrl: "scripts/",
 });
 
 var current;
@@ -162,8 +162,7 @@ var play = (notes) => {
   const now = Tone.now();
   _.forEach(notes, (n) =>
     current.triggerAttack(
-      Tone.Frequency(n + 3 * 12, "midi").toNote(),
-      now + 0.1
+      Tone.Frequency(n + 3 * 12, "midi").toNote()
     )
   );
   _.forEach(notes, (n) =>
@@ -208,7 +207,6 @@ window.start = async () => {
   }
 
   function getMIDIMessage(message) {
-    alert(message.data.join(", "))
     var command = message.data[0];
     var note = message.data[1];
     var velocity = message.data.length > 2 ? message.data[2] : 0; // a velocity value might not be included with a noteOff command
@@ -287,7 +285,6 @@ window.start = async () => {
       var chord = {};
       if (!chords || chords.length === 0) {
         chords = await getNew(chordTypes, maxInversionValue, common, db);
-        console.log(chords)
         if (!chords || chords.length === 0) {
           correct.innerHTML = "No New Card!";
           await wait(2000);
