@@ -43,6 +43,25 @@ _.forEach(document.querySelectorAll("input"), (d) => {
   };
 });
 
+if (navigator.requestMIDIAccess) {
+  console.log("This browser supports WebMIDI!");
+
+  navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+} else {
+  console.log("WebMIDI is not supported in this browser.");
+}
+
+function onMIDISuccess(midiAccess) {
+  let md = document.getElementById("midi-devices");
+  midiAccess.inputs.keys().forEach((f,i)=>{
+    md.innerHTML += `<option value="${f}" ${i===0?"selected":""}>${f}</option>`
+  });
+}
+
+function onMIDIFailure() {
+  alert("Could not access MIDI devices.");
+}
+
 document.getElementById("common-chords").addEventListener("click", ()=>{
   _.forEach(allChords, (option) => {
     if(document.getElementById("common-chords").checked && option.common>-1){
@@ -168,14 +187,17 @@ window.start = async () => {
   function onMIDISuccess(midiAccess) {
     var inputs = midiAccess.inputs;
 
-    if((inputs?.size ?? 0) === 0){
-      setTimeout(()=>navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure),200)
-      return
-    }
+    var e = document.getElementById("midi-devices");
+    var value = e.value;
+    midiAccess.inputs[value].onmidimessage = getMIDIMessage;
+    // if((inputs?.size ?? 0) === 0){
+    //   setTimeout(()=>navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure),200)
+    //   return
+    // }
 
-    for (var input of midiAccess.inputs.values()) {
-      input.onmidimessage = getMIDIMessage;
-    }
+    // for (var input of midiAccess.inputs.values()) {
+    //   input.onmidimessage = getMIDIMessage;
+    // }
   }
 
   function onMIDIFailure() {
@@ -286,7 +308,7 @@ window.start = async () => {
           noteNums[j] += 12;
         }
       }
-      
+
       if (showChord) {
         card.innerHTML =
           chord.name +
