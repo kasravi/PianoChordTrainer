@@ -173,6 +173,10 @@ var play = (notes) => {
 
 var all_rec_notes = [];
 
+window.testSound = () => {
+  current.triggerAttack(Tone.Frequency(67, "midi").toNote());
+  setTimeout(()=>current.triggerRelease(Tone.Frequency(67, "midi").toNote()), 1000);
+}
 window.start = async () => {
   console.log("start");
   setting.classList.add("hidden");
