@@ -52,9 +52,8 @@ if (navigator.requestMIDIAccess) {
 
 function onMIDISuccess(midiAccess) {
   let md = document.getElementById("midi-devices");
-  let keys = [...midiAccess.inputs.keys()];
+  let keys = [...midiAccess.inputs.values()].map(f=>f.name);
   if(keys.length<1){
-    console.log("aaa")
     md.innerText = "No midi device has been found"
   }else{
     md.innerText = "will recieve midi events from these devices: "+keys.join(", ")
@@ -195,9 +194,10 @@ window.start = async () => {
       return
     }
 
-    for (var input of midiAccess.inputs.values()) {
+    midiAccess.inputs.forEach(input=> {
+      alert(input.name)
       input.onmidimessage = getMIDIMessage;
-    }
+    })
   }
 
   function onMIDIFailure() {
@@ -205,6 +205,7 @@ window.start = async () => {
   }
 
   function getMIDIMessage(message) {
+    alert(message)
     var command = message.data[0];
     var note = message.data[1];
     var velocity = message.data.length > 2 ? message.data[2] : 0; // a velocity value might not be included with a noteOff command
