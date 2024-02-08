@@ -48,7 +48,7 @@ if (navigator.requestMIDIAccess) {
 
   navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
 } else {
-  console.log("WebMIDI is not supported in this browser.");
+  alert("WebMIDI is not supported in this browser.");
 }
 
 function onMIDISuccess(midiAccess) {

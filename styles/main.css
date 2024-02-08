@@ -23,6 +23,7 @@
     border: 1px black solid;
     width: 27%;
     margin: 1rem;
+    margin-right:0;
     padding: 0.5rem;
     height: 80vh;
     overflow: scroll

@@ -288,7 +288,7 @@ const staticAssets = [
 ];
 
 const modified = {'/index.html':true,'/scripts/main.js':true,'/style/main.css':true,'/scripts/chords.js':true}
-const version = "0.2";
+const version = "0.3";
 
 self.addEventListener('install', async event => {
     //event.waitUntil(self.skipWaiting());
@@ -325,24 +325,4 @@ self.addEventListener('activate', function (e) {
     );
 });
 
-function distinct(value, index, self) {
-    return self.indexOf(value) === index;
-}
-
-function debounce(func, wait, immediate) {
-    var timeout;
-    return function() {
-      var context = this,
-        args = arguments;
-      var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(function() {
-        timeout = null;
-        if (!immediate) {
-          func.apply(context, args);
-        }
-      }, wait);
-      if (callNow) func.apply(context, args);
-    }
-  }
 
