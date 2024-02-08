@@ -195,7 +195,6 @@ window.start = async () => {
     }
 
     midiAccess.inputs.forEach(input=> {
-      alert(input.name)
       input.onmidimessage = getMIDIMessage;
     })
   }
@@ -205,7 +204,7 @@ window.start = async () => {
   }
 
   function getMIDIMessage(message) {
-    alert(message)
+    alert(message.data.join(", "))
     var command = message.data[0];
     var note = message.data[1];
     var velocity = message.data.length > 2 ? message.data[2] : 0; // a velocity value might not be included with a noteOff command
