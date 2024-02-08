@@ -1,6 +1,5 @@
 // import data from "./chords.js";
 import {allChords} from "./chords.js";
-console.log(allChords)
 import { init, reset, get, getNew, update } from "./db.js";
 import { supermemo } from "./sm.js";
 import { setCookie, getCookie } from "./cookie.js";
@@ -48,14 +47,18 @@ if (navigator.requestMIDIAccess) {
 
   navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
 } else {
-  alert("WebMIDI is not supported in this browser.");
+  console.log("WebMIDI is not supported in this browser.");
 }
 
 function onMIDISuccess(midiAccess) {
   let md = document.getElementById("midi-devices");
-  midiAccess.inputs.keys().forEach((f,i)=>{
-    md.innerHTML += `<option value="${f}" ${i===0?"selected":""}>${f}</option>`
-  });
+  let keys = [...midiAccess.inputs.keys()];
+  if(keys.length<1){
+    console.log("aaa")
+    md.innerText = "No midi device has been found"
+  }else{
+    md.innerText = "will recieve midi events from these devices: "+keys.join(", ")
+  }
 }
 
 function onMIDIFailure() {
@@ -187,17 +190,14 @@ window.start = async () => {
   function onMIDISuccess(midiAccess) {
     var inputs = midiAccess.inputs;
 
-    var e = document.getElementById("midi-devices");
-    var value = e.value;
-    midiAccess.inputs[value].onmidimessage = getMIDIMessage;
-    // if((inputs?.size ?? 0) === 0){
-    //   setTimeout(()=>navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure),200)
-    //   return
-    // }
+    if((inputs?.size ?? 0) === 0){
+      setTimeout(()=>navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure),200)
+      return
+    }
 
-    // for (var input of midiAccess.inputs.values()) {
-    //   input.onmidimessage = getMIDIMessage;
-    // }
+    for (var input of midiAccess.inputs.values()) {
+      input.onmidimessage = getMIDIMessage;
+    }
   }
 
   function onMIDIFailure() {
